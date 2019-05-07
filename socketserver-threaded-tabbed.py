@@ -7,6 +7,7 @@ import threading
 import subprocess
 import os
 import libtmux
+import time
 
 def shell(conn, addr):
 	unix_sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
@@ -17,11 +18,12 @@ def shell(conn, addr):
 	unix_sock.bind("/tmp/flipnet/"+addr[0]+"/"+str(addr[1])+".s")
 	unix_sock.listen()
 	
-	if subprocess.call(["tmux -S /tmp/flipnet/tmux ls"], shell=True) == 1:
+	if not os.path.exists("/tmp/flipnet/tmux"):
 		subprocess.Popen(["tmux -S /tmp/flipnet/tmux new -s netcat -d"], shell=True)
 
 	ncat = "ncat -U /tmp/flipnet/"+addr[0]+"/"+str(addr[1])+".s"
 	tmux = libtmux.Server("", "/tmp/flipnet/tmux")
+	time.sleep(1)
 	tmux_session = tmux.find_where({ "session_name": "netcat" })
 	window = tmux_session.new_window(attach=False)
 	pane = window.select_pane(1)
