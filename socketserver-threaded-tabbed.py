@@ -10,19 +10,20 @@ import libtmux
 import time
 
 def shell(conn, addr):
+	locatie = "/tmp/flipnet"
 	unix_sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
 
-	if not os.path.exists('/tmp/flipnet/'+addr[0]):
-		os.makedirs("/tmp/flipnet/"+addr[0])
+	if not os.path.exists("{0}/{1}".format(locatie, addr[0])):
+		os.makedirs("{0}/{1}".format(locatie, addr[0]))
 	
-	unix_sock.bind("/tmp/flipnet/"+addr[0]+"/"+str(addr[1])+".s")
+	unix_sock.bind("{0}/{1}/{2}.s".format(locatie,addr[0],addr[1]))
 	unix_sock.listen()
 	
-	if not os.path.exists("/tmp/flipnet/tmux"):
-		subprocess.Popen(["tmux -S /tmp/flipnet/tmux new -s netcat -d"], shell=True)
+	if not os.path.exists("{0}/tmux".format(locatie)):
+		subprocess.Popen(["tmux -S {0}/tmux new -s netcat -d".format(locatie)], shell=True)
 
-	ncat = "ncat -U /tmp/flipnet/"+addr[0]+"/"+str(addr[1])+".s"
-	tmux = libtmux.Server("", "/tmp/flipnet/tmux")
+	ncat = "ncat -U /{0}/{1}/{2}.s".format(locatie,addr[0],addr[1])
+	tmux = libtmux.Server("", "{0}/tmux".format(locatie))
 	time.sleep(1)
 	tmux_session = tmux.find_where({ "session_name": "netcat" })
 	window = tmux_session.new_window(attach=False)
