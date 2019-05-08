@@ -8,21 +8,21 @@ import subprocess
 import os
 import libtmux
 import time
+import shutil
 
-def shell(conn, addr):
-	locatie = "/tmp/flipnet"
+def shell(conn, addr, locatie):
 	unix_sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
 
 	if not os.path.exists("{0}/{1}".format(locatie, addr[0])):
 		os.makedirs("{0}/{1}".format(locatie, addr[0]))
 	
-	unix_sock.bind("{0}/{1}/{2}.s".format(locatie,addr[0],addr[1]))
+	unix_sock.bind("{0}/{1}/{2}.s".format(locatie, addr[0], addr[1]))
 	unix_sock.listen()
 	
 	if not os.path.exists("{0}/tmux".format(locatie)):
 		subprocess.Popen(["tmux -S {0}/tmux new -s netcat -d".format(locatie)], shell=True)
 
-	ncat = "ncat -U /{0}/{1}/{2}.s".format(locatie,addr[0],addr[1])
+	ncat = "ncat -U /{0}/{1}/{2}.s".format(locatie, addr[0], addr[1])
 	tmux = libtmux.Server("", "{0}/tmux".format(locatie))
 	time.sleep(1)
 	tmux_session = tmux.find_where({ "session_name": "netcat" })
@@ -45,6 +45,7 @@ def ontvang(conn, unix_conn):
 	while True:
 		unix_conn.send(conn.recv(1024))
 
+locatie = "/tmp/flipnet"
 addres = "127.0.0.1"
 port = int(sys.argv[1])
 
@@ -62,8 +63,12 @@ print("Socket bind complete")
 s.listen()
 print("socket now listening")
 
-while True:
-	conn, addr = s.accept()
-	print("Connected with "+addr[0]+":"+str(addr[1]))
-	thread = threading.Thread(target=shell, args=(conn, addr))
-	thread.start()
+try:
+	while True:
+		conn, addr = s.accept()
+		print("Connected with "+addr[0]+":"+str(addr[1]))
+		thread = threading.Thread(target=shell, args=(conn, addr, locatie))
+		thread.start()
+except KeyboardInterrupt:
+	shutil.rmtree(locatie)
+	print("bye bye")
