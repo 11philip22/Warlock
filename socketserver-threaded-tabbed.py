@@ -68,6 +68,7 @@ try:
 		conn, addr = s.accept()
 		print("Connected with "+addr[0]+":"+str(addr[1]))
 		thread = threading.Thread(target=shell, args=(conn, addr, locatie))
+		thread.daemon = True
 		thread.start()
 except KeyboardInterrupt:
 	shutil.rmtree(locatie)
