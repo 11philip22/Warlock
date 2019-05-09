@@ -44,7 +44,7 @@ def ontvang(conn, unix_conn):
 	while True:
 		unix_conn.send(conn.recv(1024))
 
-locatie = "/tmp/flipnet"
+locatie = "/tmp/warlock"
 addres = "127.0.0.1"
 port = int(sys.argv[1])
 
