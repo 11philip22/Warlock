@@ -4,7 +4,6 @@
 import socket
 import sys
 import threading
-import subprocess
 import os
 import libtmux
 import time
@@ -20,7 +19,7 @@ def shell(conn, addr, locatie):
 	unix_sock.listen()
 	
 	if not os.path.exists("{0}/tmux".format(locatie)):
-		subprocess.Popen(["tmux -S {0}/tmux new -s netcat -d".format(locatie)], shell=True)
+		os.system("tmux -S {0}/tmux new -s netcat -d".format(locatie))
 
 	ncat = "ncat -U /{0}/{1}/{2}.s".format(locatie, addr[0], addr[1])
 	tmux = libtmux.Server("", "{0}/tmux".format(locatie))
