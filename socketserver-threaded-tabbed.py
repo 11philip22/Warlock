@@ -10,18 +10,24 @@ import time
 import shutil
 
 def shell(conn, addr, locatie):
+	# create a new unix sock
 	unix_sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
 
+	#make folder inside the main folder for this connection
 	if not os.path.exists("{0}/{1}".format(locatie, addr[0])):
 		os.makedirs("{0}/{1}".format(locatie, addr[0]))
 	
+	#bind the unix socket
 	unix_sock.bind("{0}/{1}/{2}.s".format(locatie, addr[0], addr[1]))
 	unix_sock.listen()
 	
+	#start a tmux session
 	if not os.path.exists("{0}/tmux".format(locatie)):
 		os.system("tmux -S {0}/tmux new -s netcat -d".format(locatie))
 
+	#connect to the socket
 	ncat = "ncat -U /{0}/{1}/{2}.s".format(locatie, addr[0], addr[1])
+	#make a new tmux window for this connection
 	tmux = libtmux.Server("", "{0}/tmux".format(locatie))
 	time.sleep(1)
 	tmux_session = tmux.find_where({ "session_name": "netcat" })
@@ -29,6 +35,7 @@ def shell(conn, addr, locatie):
 	pane = window.select_pane(1)
 	pane.send_keys(ncat)
 
+	#connect the unix socket to the tcp socket
 	while True:
 		unix_conn, unix_addr = unix_sock.accept()
 		stuurthread = threading.Thread(target=stuur, args=(conn, unix_conn))
@@ -36,6 +43,7 @@ def shell(conn, addr, locatie):
 		stuurthread.start()
 		ontvangthread.start()
 
+#connect the stdin and stdout of the sockets
 def stuur(conn, unix_conn):
 	while True:
 		conn.send(unix_conn.recv(1024))
@@ -62,6 +70,7 @@ print("Socket bind complete")
 s.listen()
 print("socket now listening")
 
+#start a thread for for each incomming connection
 try:
 	while True:
 		conn, addr = s.accept()
