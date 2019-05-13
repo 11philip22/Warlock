@@ -21,21 +21,19 @@ def shell(conn, addr, locatie):
 	unix_sock.bind("{0}/{1}/{2}.s".format(locatie, addr[0], addr[1]))
 	unix_sock.listen()
 	
-	#connect ncat to the unix socket
-	ncat = "ncat -U /{0}/{1}/{2}.s".format(locatie, addr[0], addr[1])
-
 	#start a tmux session
 	if not os.path.exists("{0}/tmux".format(locatie)):
 		os.system("tmux -S {0}/tmux new -s netcat -d".format(locatie))
-		os.system("tmux -S {0}/tmux send-keys -t netcat.0 \"{1}\" ENTER".format(locatie, ncat))
-	else:
-		#make a new tmux window for this connection
-		tmux = libtmux.Server("", "{0}/tmux".format(locatie))
-		time.sleep(1)
-		tmux_session = tmux.find_where({ "session_name": "netcat" })
-		window = tmux_session.new_window(attach=False)
-		pane = window.select_pane(1)
-		pane.send_keys(ncat)
+
+	#connect to the socket
+	ncat = "ncat -U /{0}/{1}/{2}.s".format(locatie, addr[0], addr[1])
+	#make a new tmux window for this connection
+	tmux = libtmux.Server("", "{0}/tmux".format(locatie))
+	time.sleep(1)
+	tmux_session = tmux.find_where({ "session_name": "netcat" })
+	window = tmux_session.new_window(attach=False)
+	pane = window.select_pane(1)
+	pane.send_keys(ncat)
 
 	#connect the unix socket to the tcp socket
 	while True:
