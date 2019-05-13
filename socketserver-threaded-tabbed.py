@@ -25,6 +25,7 @@ def shell(conn, addr, locatie):
 	ncat = "ncat -U /{0}/{1}/{2}.s".format(locatie, addr[0], addr[1])
 
 	#start a tmux session
+	# TODO: check if there is a tmux session running named netcat instead of checking if the tmux socket
 	if not os.path.exists("{0}/tmux".format(locatie)):
 		os.system("tmux -S {0}/tmux new -s netcat -d".format(locatie))
 		os.system("tmux -S {0}/tmux send-keys -t netcat.0 \"{1}\" ENTER".format(locatie, ncat))
