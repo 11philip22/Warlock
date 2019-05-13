@@ -53,8 +53,11 @@ def ontvang(conn, unix_conn):
 		unix_conn.send(conn.recv(1024))
 
 locatie = "/tmp/warlock"
-addres = "127.0.0.1"
 port = int(sys.argv[1])
+if str(sys.argv[2]) == "":
+	addres = "127.0.0.1"
+else:
+	addres = str(sys.argv[2])
 
 s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 print("socket created")
@@ -70,7 +73,7 @@ print("Socket bind complete")
 s.listen()
 print("socket now listening")
 
-#start a thread for for each incomming connection
+#start a thread for for each incomming connection4
 try:
 	while True:
 		conn, addr = s.accept()
