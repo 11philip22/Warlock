@@ -15,42 +15,42 @@ class Socketserver:
 	self.port=port
 
 	def shell(conn, addr, locatie):
-			# create a new unix sock
-			unix_sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+		# create a new unix sock
+		unix_sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
 
-			#make folder inside the main folder for this connection
-			if not os.path.exists("{0}/{1}".format(locatie, addr[0])):
-				os.makedirs("{0}/{1}".format(locatie, addr[0]))
-			
-			#bind the unix socket
-			unix_sock.bind("{0}/{1}/{2}.s".format(locatie, addr[0], addr[1]))
-			unix_sock.listen()
-			
-			#connect ncat to the unix socket
-			ncat = "ncat -U /{0}/{1}/{2}.s".format(locatie, addr[0], addr[1])
+		#make folder inside the main folder for this connection
+		if not os.path.exists("{0}/{1}".format(locatie, addr[0])):
+			os.makedirs("{0}/{1}".format(locatie, addr[0]))
+		
+		#bind the unix socket
+		unix_sock.bind("{0}/{1}/{2}.s".format(locatie, addr[0], addr[1]))
+		unix_sock.listen()
+		
+		#connect ncat to the unix socket
+		ncat = "ncat -U /{0}/{1}/{2}.s".format(locatie, addr[0], addr[1])
 
-			#start a tmux session
-			# TODO: check if there is a tmux session running named netcat instead of checking if the tmux socket
-			if not os.path.exists("{0}/tmux".format(locatie)):
-			# if not os.system("tmux -S {0}/tmux ls".format(locatie)) == 0: 
-				os.system("tmux -S {0}/tmux new -s netcat -d".format(locatie))
-				os.system("tmux -S {0}/tmux send-keys -t netcat.0 \"{1}\" ENTER".format(locatie, ncat))
-			else:
-				#make a new tmux window for this connection
-				tmux = libtmux.Server("", "{0}/tmux".format(locatie))
-				time.sleep(1)
-				tmux_session = tmux.find_where({ "session_name": "netcat" })
-				window = tmux_session.new_window(attach=False)
-				pane = window.select_pane(1)
-				pane.send_keys(ncat)
+		#start a tmux session
+		# TODO: check if there is a tmux session running named netcat instead of checking if the tmux socket
+		if not os.path.exists("{0}/tmux".format(locatie)):
+		# if not os.system("tmux -S {0}/tmux ls".format(locatie)) == 0: 
+			os.system("tmux -S {0}/tmux new -s netcat -d".format(locatie))
+			os.system("tmux -S {0}/tmux send-keys -t netcat.0 \"{1}\" ENTER".format(locatie, ncat))
+		else:
+			#make a new tmux window for this connection
+			tmux = libtmux.Server("", "{0}/tmux".format(locatie))
+			time.sleep(1)
+			tmux_session = tmux.find_where({ "session_name": "netcat" })
+			window = tmux_session.new_window(attach=False)
+			pane = window.select_pane(1)
+			pane.send_keys(ncat)
 
-			#connect the unix socket to the tcp socket
-			while True:
-				unix_conn, unix_addr = unix_sock.accept()
-				stuurthread = threading.Thread(target=stuur, args=(conn, unix_conn))
-				ontvangthread = threading.Thread(target=ontvang, args=(conn, unix_conn))
-				stuurthread.start()
-				ontvangthread.start()
+		#connect the unix socket to the tcp socket
+		while True:
+			unix_conn, unix_addr = unix_sock.accept()
+			stuurthread = threading.Thread(target=stuur, args=(conn, unix_conn))
+			ontvangthread = threading.Thread(target=ontvang, args=(conn, unix_conn))
+			stuurthread.start()
+			ontvangthread.start()
 		
 	#connect the stdin and stdout of the sockets
 	def stuur(conn, unix_conn):
