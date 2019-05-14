@@ -14,7 +14,7 @@ class Socketserver:
 	self.ip=ip
 	self.port=port
 
-	def shell(conn, addr, locatie):
+	def shell(self, conn, addr, locatie):
 		# create a new unix sock
 		unix_sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
 
@@ -53,49 +53,50 @@ class Socketserver:
 			ontvangthread.start()
 		
 	#connect the stdin and stdout of the sockets
-	def stuur(conn, unix_conn):
+	def stuur(self, conn, unix_conn):
 		while True:
 			conn.send(unix_conn.recv(1024))
 
-	def ontvang(conn, unix_conn):
+	def ontvang(self, conn, unix_conn):
 		while True:
 			unix_conn.send(conn.recv(1024))
 
-	locatie = "/tmp/warlock"
-	port = int(sys.argv[1])
+	def main(self, port, address)
+		locatie = "/tmp/warlock"
+		s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+		print("socket created")
 
-	if len(sys.argv) > 2:
-		addres = str(sys.argv[2])
-	else:addres = "127.0.0.1"
+		try:
+			s.bind((addres,port))
+		except socket.error as msg:
+			print(msg)
+			exit()
 
-	s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-	print("socket created")
+		print("Socket bind complete")
 
-	try:
-		s.bind((addres,port))
-	except socket.error as msg:
-		print(msg)
-		exit()
+		s.listen()
+		print("socket now listening")
 
-	print("Socket bind complete")
-
-	s.listen()
-	print("socket now listening")
-
-	#start a thread for for each incomming connection4
-	try:
-		while True:
-			conn, addr = s.accept()
-			print("Connected with "+addr[0]+":"+str(addr[1]))
-			thread = threading.Thread(target=shell, args=(conn, addr, locatie))
-			thread.daemon = True
-			thread.start()
-	except KeyboardInterrupt:
-		shutil.rmtree(locatie)
-		print("bye bye")
+		#start a thread for for each incomming connection4
+		try:
+			while True:
+				conn, addr = s.accept()
+				print("Connected with "+addr[0]+":"+str(addr[1]))
+				thread = threading.Thread(target=shell, args=(conn, addr, locatie))
+				thread.daemon = True
+				thread.start()
+		except KeyboardInterrupt:
+			shutil.rmtree(locatie)
+			print("bye bye")
 
 		# print("{0}:{1}".format(addr[0], addr[1]))
 		# os.remove("{0}/{1}/{2}.s".format(locatie, addr[0], addr[1]))
 
 		# if not os.listdir("{0}/{1}".format(locatie, addr[0])):
 		# 	os.rmdir("{0}/{1}".format(locatie, addr[0]))
+
+port = int(sys.argv[1])
+
+if len(sys.argv) > 2:
+	addres = str(sys.argv[2])
+else:addres = "127.0.0.1"
