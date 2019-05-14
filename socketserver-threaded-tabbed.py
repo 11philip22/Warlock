@@ -27,6 +27,7 @@ def shell(conn, addr, locatie):
 	#start a tmux session
 	# TODO: check if there is a tmux session running named netcat instead of checking if the tmux socket
 	if not os.path.exists("{0}/tmux".format(locatie)):
+	# if not os.system("tmux -S {0}/tmux ls".format(locatie)) == 0: 
 		os.system("tmux -S {0}/tmux new -s netcat -d".format(locatie))
 		os.system("tmux -S {0}/tmux send-keys -t netcat.0 \"{1}\" ENTER".format(locatie, ncat))
 	else:
@@ -57,10 +58,16 @@ def ontvang(conn, unix_conn):
 
 locatie = "/tmp/warlock"
 port = int(sys.argv[1])
-if str(sys.argv[2]) == "":
-	addres = "127.0.0.1"
-else:
+
+if len(sys.argv) > 2:
 	addres = str(sys.argv[2])
+else:
+	addres = "127.0.0.1"
+
+# if str(sys.argv[2]) == None:
+# 	addres = "127.0.0.1"
+# else:
+# 	addres = str(sys.argv[2])
 
 s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 print("socket created")
