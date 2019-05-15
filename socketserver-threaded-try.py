@@ -67,7 +67,7 @@ class Socket_Server:
 		except:
 			exterminatus()
 
-	def exterminatus(self): #wip
+	def exterminatus(self):
 		#remove socket if no longer used WIP
 		print("{0}:{1}".format(addr[0], addr[1]))
 		os.remove("{0}/{1}/{2}.s".format(locatie, addr[0], addr[1]))
