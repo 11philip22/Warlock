@@ -54,12 +54,26 @@ class Socket_Server:
 		
 	#connect the stdin and stdout of the sockets
 	def stuur(self, conn, unix_conn):
-		while True:
-			conn.send(unix_conn.recv(1024))
-
+		try:
+			while True:
+				conn.send(unix_conn.recv(1024))
+		except:
+			exterminatus()
+	
 	def ontvang(self, conn, unix_conn):
-		while True:
-			unix_conn.send(conn.recv(1024))
+		try:
+			while True:
+				unix_conn.send(conn.recv(1024))
+		except:
+			exterminatus()
+
+	def exterminatus(self): #wip
+		#remove socket if no longer used WIP
+		print("{0}:{1}".format(addr[0], addr[1]))
+		os.remove("{0}/{1}/{2}.s".format(locatie, addr[0], addr[1]))
+		#remove underlaying folder if empty
+		if not os.listdir("{0}/{1}".format(locatie, addr[0])):
+			os.rmdir("{0}/{1}".format(locatie, addr[0]))
 
 	def engage(self):
 		locatie = "/tmp/warlock"
@@ -86,14 +100,11 @@ class Socket_Server:
 				thread.daemon = True
 				thread.start()
 		except KeyboardInterrupt:
-			shutil.rmtree(locatie)
+			#clean up all the files if program closes
+			if os.path.exists(locatie):
+				shutil.rmtree(locatie)
+			
 			print("bye bye")
-
-		# print("{0}:{1}".format(addr[0], addr[1]))
-		# os.remove("{0}/{1}/{2}.s".format(locatie, addr[0], addr[1]))
-
-		# if not os.listdir("{0}/{1}".format(locatie, addr[0])):
-		# 	os.rmdir("{0}/{1}".format(locatie, addr[0]))
 
 port = int(sys.argv[1])
 
