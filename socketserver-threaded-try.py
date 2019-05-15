@@ -9,10 +9,10 @@ import libtmux
 import time
 import shutil
 
-class Socketserver:
-	def __init__(self, port=4444 ,ip="127.0.0.1")
-	self.ip=ip
-	self.port=port
+class Socket_Server:
+	def __init__(self, port=4444 ,addres="127.0.0.1"):
+		self.addres=addres
+		self.port=port
 
 	def shell(self, conn, addr, locatie):
 		# create a new unix sock
@@ -61,13 +61,13 @@ class Socketserver:
 		while True:
 			unix_conn.send(conn.recv(1024))
 
-	def main(self, port, address)
+	def engage(self):
 		locatie = "/tmp/warlock"
 		s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 		print("socket created")
 
 		try:
-			s.bind((addres,port))
+			s.bind((self.addres, self.port))
 		except socket.error as msg:
 			print(msg)
 			exit()
@@ -99,4 +99,8 @@ port = int(sys.argv[1])
 
 if len(sys.argv) > 2:
 	addres = str(sys.argv[2])
-else:addres = "127.0.0.1"
+else:
+	addres = "127.0.0.1"
+
+ss = Socket_Server(addres=addres, port=port)
+ss.engage()
