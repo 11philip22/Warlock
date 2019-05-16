@@ -8,6 +8,7 @@ import os
 import libtmux
 import time
 import shutil
+import getopt
 
 class Socket_Server:
 	def __init__(self, port=4444 ,addres="127.0.0.1"):
@@ -35,6 +36,7 @@ class Socket_Server:
 		# if not os.system("tmux -S {0}/tmux ls".format(locatie)) == 0: 
 			os.system("tmux -S {0}/tmux new -s netcat -d".format(locatie))
 			os.system("tmux -S {0}/tmux send-keys -t netcat.0 \"{1}\" ENTER".format(locatie, ncat))
+			print("you can now connect to: {0}/tmux using tmux -S".format(locatie))
 		else:
 			#make a new tmux window for this connection
 			tmux = libtmux.Server("", "{0}/tmux".format(locatie))
@@ -47,8 +49,8 @@ class Socket_Server:
 		#connect the unix socket to the tcp socket
 		while True:
 			unix_conn, unix_addr = unix_sock.accept()
-			stuurthread = threading.Thread(target=stuur, args=(conn, unix_conn))
-			ontvangthread = threading.Thread(target=ontvang, args=(conn, unix_conn))
+			stuurthread = threading.Thread(target=self.stuur, args=(conn, unix_conn))
+			ontvangthread = threading.Thread(target=self.ontvang, args=(conn, unix_conn))
 			stuurthread.start()
 			ontvangthread.start()
 		
@@ -78,6 +80,7 @@ class Socket_Server:
 	def engage(self):
 		locatie = "/tmp/warlock"
 		s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+		print("starting the server on: {0}:{1}".format(addres, port))
 		print("socket created")
 
 		try:
@@ -96,14 +99,15 @@ class Socket_Server:
 			while True:
 				conn, addr = s.accept()
 				print("Connected with "+addr[0]+":"+str(addr[1]))
-				thread = threading.Thread(target=shell, args=(conn, addr, locatie))
+				thread = threading.Thread(target=self.shell, args=(conn, addr, locatie))
 				thread.daemon = True
 				thread.start()
 		except KeyboardInterrupt:
 			#clean up all the files if program closes
 			if os.path.exists(locatie):
 				shutil.rmtree(locatie)
-			
+			#very dirty workaround disable this if you use tmux for other stuff
+			os.system("kill $(pgrep tmux)")
 			print("bye bye")
 
 port = int(sys.argv[1])
@@ -115,3 +119,23 @@ else:
 
 ss = Socket_Server(addres=addres, port=port)
 ss.engage()
+
+# try:
+# 	opts, args = getopt.getopt(sys.argv[1:],"hi:o:",["port=","addres="])
+# except getopt.GetoptError:
+# 	print("test.py -p <port> -a <addres>")
+# 	sys.exit(2)
+# for opt, arg in opts:
+# 	if opt == "-h":
+# 		print("test.py -p <port> -a <addres>")
+# 		sys.exit()
+# 	elif opt in ("-p", "--port"):
+# 		port = arg
+# 	elif opt in ("-a", "--addres"):
+# 		addres = arg
+# try:
+# 	ss = Socket_Server(addres=addres, port=port)
+# 	ss.engage()
+# except:
+# 	ss = Socket_Server()
+# 	ss.engage()
