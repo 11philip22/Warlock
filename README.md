@@ -1,4 +1,4 @@
-![alt text](https://imgur.com/a/JlX96KJ)
+![alt text](https://i.imgur.com/pqer0qT.png)
 
 At the moment Warlock a ncat multiplexer using tmux.
 
