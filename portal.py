@@ -8,26 +8,10 @@ import os
 import libtmux
 import time
 import shutil
-import getopt
-
-class transrecieve:
-	#connect the stdin and stdout of the sockets
-	def stuur(self, conn, unix_conn):
-		try:
-			while True:
-				conn.send(unix_conn.recv(1024))
-		except:
-			exterminatus()
-	
-	def ontvang(self, conn, unix_conn):
-		try:
-			while True:
-				unix_conn.send(conn.recv(1024))
-		except:
-			exterminatus()
+from dataclasses import dataclass
 
 class Socket_Server:
-	def __init__(self, port=4444 ,addres="127.0.0.1"):
+	def __init__(self, port ,addres):
 		self.addres=addres
 		self.port=port
 
@@ -65,19 +49,11 @@ class Socket_Server:
 		#connect the unix socket to the tcp socket
 		while True:
 			unix_conn, unix_addr = unix_sock.accept()
-			stuurthread = threading.Thread(target=self.stuur, args=(conn, unix_conn))
-			ontvangthread = threading.Thread(target=self.ontvang, args=(conn, unix_conn))
+			stuurthread = threading.Thread(target=stuur, args=(conn, unix_conn))
 			stuurthread.start()
+			ontvangthread = threading.Thread(target=ontvang, args=(conn, unix_conn))
 			ontvangthread.start()
 		
-	def exterminatus(self):
-		#remove socket if no longer used WIP
-		print("{0}:{1}".format(addr[0], addr[1]))
-		os.remove("{0}/{1}/{2}.s".format(locatie, addr[0], addr[1]))
-		#remove underlaying folder if empty
-		if not os.listdir("{0}/{1}".format(locatie, addr[0])):
-			os.rmdir("{0}/{1}".format(locatie, addr[0]))
-
 	def engage(self):
 		locatie = "/tmp/warlock"
 		s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -89,7 +65,6 @@ class Socket_Server:
 		except socket.error as msg:
 			print(msg)
 			exit()
-
 		print("Socket bind complete")
 
 		s.listen()
@@ -111,32 +86,42 @@ class Socket_Server:
 			os.system("kill $(pgrep tmux)")
 			print("bye bye")
 
-port = int(sys.argv[1])
+# @dataclass
+# class Socket_Server_Data(object):
+#    locatie : str
 
-if len(sys.argv) > 2:
-	addres = str(sys.argv[2])
-else:
-	addres = "127.0.0.1"
+def exterminatus(locatie, addr):
+	#remove socket if no longer used WIP
+	print("{0}:{1}".format(addr[0], addr[1]))
+	os.remove("{0}/{1}/{2}.s".format(locatie, addr[0], addr[1]))
+	#remove underlaying folder if empty
+	if not os.listdir("{0}/{1}".format(locatie, addr[0])):
+		os.rmdir("{0}/{1}".format(locatie, addr[0]))
 
-ss = Socket_Server(addres=addres, port=port)
-ss.engage()
+#connect the stdin and stdout of the sockets
+def stuur(conn, unix_conn):
+	try:
+		while True:
+			conn.send(unix_conn.recv(1024))
+	except:
+		# exterminatus()
+		print("oepsie stuur")
 
-# try:
-# 	opts, args = getopt.getopt(sys.argv[1:],"hi:o:",["port=","addres="])
-# except getopt.GetoptError:
-# 	print("test.py -p <port> -a <addres>")
-# 	sys.exit(2)
-# for opt, arg in opts:
-# 	if opt == "-h":
-# 		print("test.py -p <port> -a <addres>")
-# 		sys.exit()
-# 	elif opt in ("-p", "--port"):
-# 		port = arg
-# 	elif opt in ("-a", "--addres"):
-# 		addres = arg
-# try:
-# 	ss = Socket_Server(addres=addres, port=port)
-# 	ss.engage()
-# except:
-# 	ss = Socket_Server()
-# 	ss.engage()
+def ontvang(conn, unix_conn):
+	try:
+		while True:
+			unix_conn.send(conn.recv(1024))
+	except:
+		# exterminatus()
+		print("oepsie ontvang")
+
+if __name__ == '__main__':
+	port = int(sys.argv[1])
+
+	if len(sys.argv) > 2:
+		addres = str(sys.argv[2])
+	else:
+		addres = "127.0.0.1"
+
+	ss = Socket_Server(addres=addres, port=port)
+	ss.engage()
