@@ -45,8 +45,8 @@ class Worker:
 
 	def start(self):
 		self.unix_socket()
-		self.connection()
 		self.tmux()
+		self.connection()
 
 	def unix_socket(self):
 		if not os.path.exists("{0}/{1}".format(self.locatie, self.addr[0])):
@@ -74,12 +74,12 @@ class Worker:
 	def connection(self):
 		while True:
 			unix_conn, unix_addr = self.unix_sock.accept()
-			stuurthread = threading.Thread(target=self.stuur(self.conn, unix_conn))
+			stuurthread = threading.Thread(target=self.stuur, args=(self.conn, unix_conn))
 			stuurthread.start()
-			ontvangthread = threading.Thread(target=self.ontvang(self.conn, unix_conn))
+			ontvangthread = threading.Thread(target=self.ontvang, args=(self.conn, unix_conn))
 			ontvangthread.start()
 
-	def stuur(self, unix_conn):
+	def stuur(self, unix_conn, conn):
 		try:
 			while True:
 				self.conn.send(unix_conn.recv(1024))
@@ -87,7 +87,7 @@ class Worker:
 			self.exterminatus()
 			# print("oepsie stuur")
 
-	def ontvang(self, conn, unix_conn):
+	def ontvang(self, unix_conn, conn):
 		try:
 			while True:
 				unix_conn.send(self.conn.recv(1024))
