@@ -44,26 +44,26 @@ class Worker:
 		self.addr = addr
 		self.conn = conn
 
-	def start(self, port, locatie, addr, conn):
-		self.unix_socket(locatie, addr)
+	def start(self):
+		self.unix_socket()
 		self.connection()
-		
 
-	def unix_socket(self, locatie, addr):
+
+	def unix_socket(self):
 		self.unix_sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-		self.unix_sock.bind("{0}/{1}/{2}.s".format(locatie, addr[0], addr[1]))
+		self.unix_sock.bind("{0}/{1}/{2}.s".format(self.locatie, self.addr[0], self.addr[1]))
 		self.unix_sock.listen()
 		
 
 	def tmux(self, locatie ,addr):
-		ncat = "ncat -U /{0}/{1}/{2}.s".format(locatie, addr[0], addr[1])
+		ncat = "ncat -U /{0}/{1}/{2}.s".format(self.locatie, self.addr[0], self.addr[1])
 		
-		if not os.path.exists("{0}/tmux".format(locatie)):
-			os.system("tmux -S {0}/tmux new -s netcat -d".format(locatie))
-			os.system("tmux -S {0}/tmux send-keys -t netcat.0 \"{1}\" ENTER".format(locatie, ncat))
-			print("you can now connect to: {0}/tmux using tmux -S".format(locatie))
+		if not os.path.exists("{0}/tmux".format(self.locatie)):
+			os.system("tmux -S {0}/tmux new -s netcat -d".format(self.locatie))
+			os.system("tmux -S {0}/tmux send-keys -t netcat.0 \"{1}\" ENTER".format(self.locatie, ncat))
+			print("you can now connect to: {0}/tmux using tmux -S".format(self.locatie))
 		else:
-			tmux = libtmux.Server("", "{0}/tmux".format(locatie))
+			tmux = libtmux.Server("", "{0}/tmux".format(self.locatie))
 			time.sleep(1)
 			tmux_session = tmux.find_where({ "session_name": "netcat" })
 			window = tmux_session.new_window(attach=False)
@@ -94,13 +94,13 @@ class Worker:
 			# exterminatus()
 			print("oepsie ontvang")
 
-	def exterminatus(self, locatie, addr):
+	def exterminatus(self):
 		#remove socket if no longer used WIP
-		print("{0}:{1}".format(addr[0], addr[1]))
-		os.remove("{0}/{1}/{2}.s".format(locatie, addr[0], addr[1]))
+		print("{0}:{1}".format(self.addr[0], self.addr[1]))
+		os.remove("{0}/{1}/{2}.s".format(self.locatie, self.addr[0], self.addr[1]))
 		#remove underlaying folder if empty
-		if not o.slistdir("{0}/{1}".format(locatie, addr[0])):
-			os.rmdir("{0}/{1}".format(locatie, addr[0]))
+		if not os.listdir("{0}/{1}".format(self.locatie, self.addr[0])):
+			os.rmdir("{0}/{1}".format(self.locatie, self.addr[0]))
 
 if __name__ == '__main__':
 	port = int(sys.argv[1])
