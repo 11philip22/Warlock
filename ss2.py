@@ -36,15 +36,24 @@ def SocketServer():
 		if os.path.exists(locatie):
 			shutil.rmtree(locatie)
 
-class Shell:
-	def __init__(self, port ,addres):
-		self.addres=addres
-		self.port=port
+class Worker:
+	def __init__(self, port, locatie, addr, conn):
+		self.addres = addres
+		self.port = port
+		self.locatie = locatie
+		self.addr = addr
+		self.conn = conn
 
-	def Unix_socket(self, locatie, addr):
-		unix_sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-		unix_sock.bind("{0}/{1}/{2}.s".format(locatie, addr[0], addr[1]))
-		unix_sock.listen()
+	def start(self, port, locatie, addr, conn):
+		self.unix_socket(locatie, addr)
+		self.connection()
+		
+
+	def unix_socket(self, locatie, addr):
+		self.unix_sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+		self.unix_sock.bind("{0}/{1}/{2}.s".format(locatie, addr[0], addr[1]))
+		self.unix_sock.listen()
+		
 
 	def tmux(self, locatie ,addr):
 		ncat = "ncat -U /{0}/{1}/{2}.s".format(locatie, addr[0], addr[1])
@@ -61,15 +70,15 @@ class Shell:
 			pane = window.select_pane(1)
 			pane.send_keys(ncat)
 
-	def connection(self, conn):
+	def connection(self):
 		while True:
-			unix_conn, unix_addr = unix_sock.accept()
-			stuurthread = threading.Thread(target=stuur, args=(conn, unix_conn))
+			unix_conn, unix_addr = self.unix_sock.accept()
+			stuurthread = threading.Thread(target=self.stuur(self.conn, unix_conn))
 			stuurthread.start()
-			ontvangthread = threading.Thread(target=ontvang, args=(conn, unix_conn))
+			ontvangthread = threading.Thread(target=self.ontvang(self.conn, unix_conn))
 			ontvangthread.start()
 
-	def stuur(conn, unix_conn):
+	def stuur(self, conn, unix_conn):
 		try:
 			while True:
 				conn.send(unix_conn.recv(1024))
@@ -77,7 +86,7 @@ class Shell:
 			# exterminatus()
 			print("oepsie stuur")
 
-	def ontvang(conn, unix_conn):
+	def ontvang(self, conn, unix_conn):
 		try:
 			while True:
 				unix_conn.send(conn.recv(1024))
