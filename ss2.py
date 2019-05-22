@@ -9,16 +9,14 @@ import libtmux
 import time
 import shutil
 
-def SocketServer():
+def socketserver(addres, port):
 	locatie = "/tmp/warlock"
-	if not os.path.exists("{0}/{1}".format(locatie, addr[0])):
-		os.makedirs("{0}/{1}".format(locatie, addr[0]))
 
 	s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 	print("starting the server on: {0}:{1}".format(addres, port))
 	
 	try:
-		s.bind((self.addres, self.port))
+		s.bind((addres, port))
 	except socket.error as msg:
 		print(msg)
 		exit()
@@ -28,8 +26,9 @@ def SocketServer():
 	try:
 		while True:
 			conn, addr = s.accept()
+			w = Worker(port=port, locatie=locatie, addr=addr, conn=conn)
 			print("Connected with "+addr[0]+":"+str(addr[1]))
-			thread = threading.Thread(target=self.shell, args=(conn, addr, locatie))
+			thread = threading.Thread(target=w.start())
 			thread.daemon = True
 			thread.start()
 	except KeyboardInterrupt:
@@ -47,15 +46,17 @@ class Worker:
 	def start(self):
 		self.unix_socket()
 		self.connection()
-
+		self.tmux()
 
 	def unix_socket(self):
+		if not os.path.exists("{0}/{1}".format(self.locatie, self.addr[0])):
+			os.makedirs("{0}/{1}".format(self.locatie, self.addr[0]))
+
 		self.unix_sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
 		self.unix_sock.bind("{0}/{1}/{2}.s".format(self.locatie, self.addr[0], self.addr[1]))
 		self.unix_sock.listen()
 		
-
-	def tmux(self, locatie ,addr):
+	def tmux(self):
 		ncat = "ncat -U /{0}/{1}/{2}.s".format(self.locatie, self.addr[0], self.addr[1])
 		
 		if not os.path.exists("{0}/tmux".format(self.locatie)):
@@ -78,21 +79,21 @@ class Worker:
 			ontvangthread = threading.Thread(target=self.ontvang(self.conn, unix_conn))
 			ontvangthread.start()
 
-	def stuur(self, conn, unix_conn):
+	def stuur(self, unix_conn):
 		try:
 			while True:
-				conn.send(unix_conn.recv(1024))
+				self.conn.send(unix_conn.recv(1024))
 		except:
-			# exterminatus()
-			print("oepsie stuur")
+			self.exterminatus()
+			# print("oepsie stuur")
 
 	def ontvang(self, conn, unix_conn):
 		try:
 			while True:
-				unix_conn.send(conn.recv(1024))
+				unix_conn.send(self.conn.recv(1024))
 		except:
-			# exterminatus()
-			print("oepsie ontvang")
+			self.exterminatus()
+			# print("oepsie ontvang")
 
 	def exterminatus(self):
 		#remove socket if no longer used WIP
@@ -110,5 +111,4 @@ if __name__ == '__main__':
 	else:
 		addres = "127.0.0.1"
 
-	ss = Socket_Server(addres=addres, port=port)
-	ss.engage()
+	socketserver(addres, port)
