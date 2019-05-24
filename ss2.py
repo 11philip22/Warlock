@@ -29,7 +29,7 @@ def socketserver(addres, port):
 			w = Worker(port=port, locatie=locatie, addr=addr, conn=conn)
 			print("Connected with "+addr[0]+":"+str(addr[1]))
 			thread = threading.Thread(target=w.start())
-			thread.daemon = True
+			# thread.daemon = True
 			thread.start()
 	except KeyboardInterrupt:
 		if os.path.exists(locatie):
@@ -67,33 +67,31 @@ class Worker:
 			tmux = libtmux.Server("", "{0}/tmux".format(self.locatie))
 			time.sleep(1)
 			tmux_session = tmux.find_where({ "session_name": "netcat" })
-			window = tmux_session.new_window(attach=False)
-			pane = window.select_pane(1)
+			self.window = tmux_session.new_window(attach=False)
+			pane = self.window.select_pane(1)
 			pane.send_keys(ncat)
 
 	def connection(self):
 		while True:
 			unix_conn, unix_addr = self.unix_sock.accept()
-			stuurthread = threading.Thread(target=self.stuur, args=(self.conn, unix_conn))
+			stuurthread = threading.Thread(target=self.stuur, args=[unix_conn])
 			stuurthread.start()
-			ontvangthread = threading.Thread(target=self.ontvang, args=(self.conn, unix_conn))
+			ontvangthread = threading.Thread(target=self.ontvang, args=[unix_conn])
 			ontvangthread.start()
 
-	def stuur(self, unix_conn, conn):
+	def stuur(self, unix_conn):
 		try:
 			while True:
 				self.conn.send(unix_conn.recv(1024))
 		except:
 			self.exterminatus()
-			# print("oepsie stuur")
 
-	def ontvang(self, unix_conn, conn):
+	def ontvang(self, unix_conn):
 		try:
 			while True:
 				unix_conn.send(self.conn.recv(1024))
 		except:
 			self.exterminatus()
-			# print("oepsie ontvang")
 
 	def exterminatus(self):
 		#remove socket if no longer used WIP
@@ -102,6 +100,8 @@ class Worker:
 		#remove underlaying folder if empty
 		if not os.listdir("{0}/{1}".format(self.locatie, self.addr[0])):
 			os.rmdir("{0}/{1}".format(self.locatie, self.addr[0]))
+
+		# self.window.close()
 
 if __name__ == '__main__':
 	port = int(sys.argv[1])
