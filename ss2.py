@@ -12,7 +12,7 @@ import shutil
 def socketserver(addres, port):
 	locatie = "/tmp/warlock"
 
-	s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	print("starting the server on: {0}:{1}".format(addres, port))
 	
 	try:
@@ -28,8 +28,8 @@ def socketserver(addres, port):
 			conn, addr = s.accept()
 			w = Worker(port=port, locatie=locatie, addr=addr, conn=conn)
 			print("Connected with "+addr[0]+":"+str(addr[1]))
-			thread = threading.Thread(target=w.start())
-			# thread.daemon = True
+			thread = threading.Thread(target=w.start)
+			thread.daemon = True
 			thread.start()
 	except KeyboardInterrupt:
 		if os.path.exists(locatie):
@@ -82,6 +82,7 @@ class Worker:
 	def stuur(self, unix_conn):
 		try:
 			while True:
+
 				self.conn.send(unix_conn.recv(1024))
 		except:
 			self.exterminatus()
