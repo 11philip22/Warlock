@@ -82,7 +82,6 @@ class Worker:
 	def stuur(self, unix_conn):
 		try:
 			while True:
-
 				self.conn.send(unix_conn.recv(1024))
 		except:
 			self.exterminatus()
@@ -102,7 +101,7 @@ class Worker:
 		if not os.listdir("{0}/{1}".format(self.locatie, self.addr[0])):
 			os.rmdir("{0}/{1}".format(self.locatie, self.addr[0]))
 
-		# self.window.close()
+		self.window.kill_window()
 
 if __name__ == '__main__':
 	port = int(sys.argv[1])
