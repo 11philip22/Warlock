@@ -11,6 +11,7 @@ TODO:
 instead of checking if the tmux socket exists 
 `if not os.path.exists("{0}/tmux".format(locatie)):`
 - [ ] close threads propper
-- [ ] delete unused sockets
+- [x] delete unused sockets
 - [ ] better arguments 
 - [ ] close tmux propper
+- [ ] fix cleanup function

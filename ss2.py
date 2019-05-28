@@ -96,12 +96,14 @@ class Worker:
 	def exterminatus(self):
 		#remove socket if no longer used WIP
 		print("{0}:{1}".format(self.addr[0], self.addr[1]))
-		os.remove("{0}/{1}/{2}.s".format(self.locatie, self.addr[0], self.addr[1]))
-		#remove underlaying folder if empty
+		# os.remove("{0}/{1}/{2}.s".format(self.locatie, self.addr[0], self.addr[1]))
+		os.system("rm {0}/{1}/{2}.s".format(self.locatie, self.addr[0], self.addr[1]))
+		# remove underlaying folder if empty
 		if not os.listdir("{0}/{1}".format(self.locatie, self.addr[0])):
-			os.rmdir("{0}/{1}".format(self.locatie, self.addr[0]))
+			# os.rmdir("{0}/{1}".format(self.locatie, self.addr[0]))
+			os.system("rmdir {0}/{1}".format(self.locatie, self.addr[0]))
 
-		self.window.kill_window()
+		# self.window.kill_window()
 
 if __name__ == '__main__':
 	port = int(sys.argv[1])
