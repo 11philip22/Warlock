@@ -121,7 +121,7 @@ class Worker:
         # self.window.kill_window()
 
 
-if __name__ == '__main__':
+def main():
     port = int(sys.argv[1])
 
     if len(sys.argv) > 2:
@@ -130,3 +130,7 @@ if __name__ == '__main__':
         addres = "127.0.0.1"
 
     socketserver(addres, port)
+
+
+if __name__ == '__main__':
+    main()
