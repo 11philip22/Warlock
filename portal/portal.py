@@ -61,6 +61,13 @@ class Worker:
         self.unix_sock.listen()
 
     def tmux(self):
+        ''' tought
+        Maybe split tmux with a collum on the left side
+        running a iteractive program showing open connections.
+        Selecting a connection and pressing enter would
+        send apropiate tmux commands to show shell of that session
+        on right section of the screen.
+        '''
         ncat = "ncat -U /{0}/{1}/{2}.s".format(self.locatie,
                                                self.addr[0],
                                                self.addr[1])
@@ -119,6 +126,7 @@ class Worker:
             os.system("rmdir {0}/{1}".format(self.locatie, self.addr[0]))
 
         # self.window.kill_window()
+        # maybe give tmux windows a name and delete by name
 
 
 def main():
