@@ -130,6 +130,10 @@ class Worker:
 
 
 def main():
+    ''' todo
+    better argparsing
+    '''
+
     port = int(sys.argv[1])
 
     if len(sys.argv) > 2:
