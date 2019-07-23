@@ -10,7 +10,7 @@ import time
 import shutil
 
 
-def socketserver(addres, port):
+def socketserver(addres, port, max_connections):
     locatie = "/tmp/warlock"
 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -22,7 +22,7 @@ def socketserver(addres, port):
         print(msg)
         exit()
 
-    s.listen()
+    s.listen(max_connections)
 
     try:
         while True:
@@ -39,11 +39,11 @@ def socketserver(addres, port):
 
 class Worker:
     def __init__(self, port, locatie, addr, conn):
-        self.addres = addres
         self.port = port
         self.locatie = locatie
         self.addr = addr
         self.conn = conn
+        self.unix_sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
 
     def start(self):
         self.unix_socket()
@@ -54,11 +54,10 @@ class Worker:
         if not os.path.exists("{0}/{1}".format(self.locatie, self.addr[0])):
             os.makedirs("{0}/{1}".format(self.locatie, self.addr[0]))
 
-        self.unix_sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         self.unix_sock.bind("{0}/{1}/{2}.s".format(self.locatie,
                                                    self.addr[0],
                                                    self.addr[1]))
-        self.unix_sock.listen()
+        self.unix_sock.listen(1)
 
     def tmux(self):
         ''' tought
@@ -66,25 +65,30 @@ class Worker:
         running a iteractive program showing open connections.
         Selecting a connection and pressing enter would
         send apropiate tmux commands to show shell of that session
-        on right section of the screen.
-        '''
+        on right section of the screen'''
         ncat = "ncat -U /{0}/{1}/{2}.s".format(self.locatie,
                                                self.addr[0],
                                                self.addr[1])
+        tmuxcreate = "tmux -S {0}/tmux new -s netcat -d".format(self.locatie)
+        tmuxsendkeys = "tmux -S {0}/tmux send-keys -t netcat.0 \
+                       \"{1}\" ENTER".format(self.locatie, ncat)
 
         if not os.path.exists("{0}/tmux".format(self.locatie)):
-            os.system("tmux -S {0}/tmux new -s netcat -d".format(self.locatie))
-            os.system("tmux -S {0}/tmux send-keys -t netcat.0"
-                      "\"{1}\" ENTER".format(self.locatie, ncat))
-            print("you can now connect to: {0}/tmux using tmux -S".format(
+            os.system(tmuxcreate)
+            os.system(tmuxsendkeys)
+            print("you can now connect to: {0}/tmux using \"tmux -S\"".format(
                 self.locatie))
         else:
-            tmux = libtmux.Server("", "{0}/tmux".format(self.locatie))
-            time.sleep(1)
-            tmux_session = tmux.find_where({"session_name": "netcat"})
-            self.window = tmux_session.new_window(attach=False)
-            pane = self.window.select_pane(1)
-            pane.send_keys(ncat)
+            try:
+                tmux = libtmux.Server("", "{0}/tmux".format(self.locatie))
+                time.sleep(1)
+                tmux_session = tmux.find_where({"session_name": "netcat"})
+                window = tmux_session.new_window(attach=False)
+                pane = window.select_pane(1)
+                pane.send_keys(ncat)
+            except:
+                os.system(tmuxcreate)
+                os.system(tmuxsendkeys)
 
     def connection(self):
         while True:
@@ -100,18 +104,18 @@ class Worker:
         try:
             while True:
                 self.conn.send(unix_conn.recv(1024))
-        except Exception:
+        except socket.error:
             self.exterminatus()
 
     def ontvang(self, unix_conn):
         try:
             while True:
                 unix_conn.send(self.conn.recv(1024))
-        except Exception:
+        except socket.error:
             self.exterminatus()
 
     def exterminatus(self):
-        # remove socket if no longer used WIP
+        # remove socket is no longer used WIP
         print("{0}:{1}".format(self.addr[0], self.addr[1]))
         # why doesnt os.remove work ???
         # os.remove("{0}/{1}/{2}.s".format(self.locatie,
@@ -129,20 +133,16 @@ class Worker:
         # maybe give tmux windows a name and delete by name
 
 
-def main():
+if __name__ == '__main__':
     ''' todo
-    better argparsing
-    '''
-
+    better argparsing'''
     port = int(sys.argv[1])
-
     if len(sys.argv) > 2:
         addres = str(sys.argv[2])
     else:
         addres = "127.0.0.1"
-
-    socketserver(addres, port)
-
-
-if __name__ == '__main__':
-    main()
+    if len(sys.argv) > 3:
+        max_connections = str(sys.argv[2])
+    else:
+        max_connections = 100
+    socketserver(addres, port, max_connections)
