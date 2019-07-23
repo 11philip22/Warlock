@@ -10,9 +10,7 @@ import time
 import shutil
 
 
-def socketserver(addres, port, max_connections):
-    locatie = "/tmp/warlock"
-
+def socketserver(addres, port, max_connections, locatie):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     print("starting the server on: {0}:{1}".format(addres, port))
 
@@ -137,12 +135,7 @@ if __name__ == '__main__':
     ''' todo
     better argparsing'''
     port = int(sys.argv[1])
-    if len(sys.argv) > 2:
-        addres = str(sys.argv[2])
-    else:
-        addres = "127.0.0.1"
-    if len(sys.argv) > 3:
-        max_connections = str(sys.argv[2])
-    else:
-        max_connections = 100
-    socketserver(addres, port, max_connections)
+    addres = "127.0.0.1"
+    max_connections = 100
+    locatie = "/tmp/warlock"
+    socketserver(addres, port, max_connections, locatie)
